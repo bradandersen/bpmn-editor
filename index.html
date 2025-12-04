@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BPMN Modeler</title>
+
+  <!-- BPMN.js CSS - All files included locally -->
+  <link rel="stylesheet" href="assets/css/diagram-js.css">
+  <link rel="stylesheet" href="assets/css/bpmn-js.css">
+  <link rel="stylesheet" href="assets/css/bpmn.css">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+    #canvas {
+      height: 100vh;
+      width: 100%;
+    }
+    .info {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      font-size: 12px;
+      z-index: 1000;
+    }
+    .file-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 1000;
+      display: flex;
+      gap: 10px;
+    }
+    .file-controls button {
+      background: white;
+      border: 1px solid #ccc;
+      padding: 10px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: all 0.2s;
+    }
+    .file-controls button:hover {
+      background: #f5f5f5;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .file-controls button:active {
+      transform: translateY(1px);
+    }
+    #fileInput {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="info">
+    <strong>Quick Tips:</strong><br>
+    • Double-click elements to add text<br>
+    • Click elements to see options<br>
+    • Use the palette on the left to add elements
+  </div>
+
+  <div class="file-controls">
+    <input type="file" id="fileInput" accept=".bpmn,.xml" />
+    <button id="newBtn" onclick="newDiagram()">
+      <span>➕</span> New
+    </button>
+    <button id="openBtn" onclick="openDiagram()">
+      <span>📁</span> Open
+    </button>
+    <button id="downloadBtn" onclick="downloadDiagram()">
+      <span>💾</span> Download
+    </button>
+    <button id="downloadSvgBtn" onclick="downloadSVG()">
+      <span>🖼️</span> Export SVG
+    </button>
+  </div>
+
+  <div id="canvas"></div>
+
+  <!-- BPMN.js JavaScript - Included locally -->
+  <script src="assets/js/bpmn-modeler.js"></script>
+  <script>
+    // Create a new modeler instance
+    var modeler = new BpmnJS({
+      container: '#canvas'
+    });
+
+    // Simple BPMN diagram to start with
+    var bpmnXML = `<?xml version="1.0" encoding="UTF-8"?>
+    <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                      xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                      xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                      xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                      id="Definitions_1"
+                      targetNamespace="http://bpmn.io/schema/bpmn">
+      <bpmn:process id="Process_1" isExecutable="false">
+        <bpmn:startEvent id="StartEvent_1" name="Start">
+          <bpmn:outgoing>Flow_1</bpmn:outgoing>
+        </bpmn:startEvent>
+        <bpmn:task id="Task_1" name="Sample Task">
+          <bpmn:incoming>Flow_1</bpmn:incoming>
+          <bpmn:outgoing>Flow_2</bpmn:outgoing>
+        </bpmn:task>
+        <bpmn:endEvent id="EndEvent_1" name="End">
+          <bpmn:incoming>Flow_2</bpmn:incoming>
+        </bpmn:endEvent>
+        <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+        <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="EndEvent_1" />
+      </bpmn:process>
+      <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+        <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+          <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+            <dc:Bounds x="173" y="102" width="36" height="36"/>
+            <bpmndi:BPMNLabel>
+              <dc:Bounds x="179" y="145" width="24" height="14"/>
+            </bpmndi:BPMNLabel>
+          </bpmndi:BPMNShape>
+          <bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1">
+            <dc:Bounds x="260" y="80" width="100" height="80"/>
+          </bpmndi:BPMNShape>
+          <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+            <dc:Bounds x="412" y="102" width="36" height="36"/>
+            <bpmndi:BPMNLabel>
+              <dc:Bounds x="420" y="145" width="20" height="14"/>
+            </bpmndi:BPMNLabel>
+          </bpmndi:BPMNShape>
+          <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+            <di:waypoint x="209" y="120"/>
+            <di:waypoint x="260" y="120"/>
+          </bpmndi:BPMNEdge>
+          <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+            <di:waypoint x="360" y="120"/>
+            <di:waypoint x="412" y="120"/>
+          </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+      </bpmndi:BPMNDiagram>
+    </bpmn:definitions>`;
+
+    // Load and display the diagram
+    modeler.importXML(bpmnXML).then(function(result) {
+      console.log('BPMN diagram loaded successfully');
+      var canvas = modeler.get('canvas');
+      canvas.zoom('fit-viewport');
+    }).catch(function(err) {
+      console.error('Error loading BPMN diagram:', err);
+    });
+
+    // File operations
+    function newDiagram() {
+      var emptyBpmn = `<?xml version="1.0" encoding="UTF-8"?>
+      <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                        xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                        xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                        id="Definitions_1"
+                        targetNamespace="http://bpmn.io/schema/bpmn">
+        <bpmn:process id="Process_1" isExecutable="false">
+          <bpmn:startEvent id="StartEvent_1"/>
+        </bpmn:process>
+        <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+          <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+            <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+              <dc:Bounds x="173" y="102" width="36" height="36"/>
+            </bpmndi:BPMNShape>
+          </bpmndi:BPMNPlane>
+        </bpmndi:BPMNDiagram>
+      </bpmn:definitions>`;
+
+      modeler.importXML(emptyBpmn).then(function(result) {
+        console.log('New diagram created');
+        var canvas = modeler.get('canvas');
+        canvas.zoom('fit-viewport');
+      }).catch(function(err) {
+        console.error('Error creating new diagram:', err);
+      });
+    }
+
+    function openDiagram() {
+      document.getElementById('fileInput').click();
+    }
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        var xml = event.target.result;
+        modeler.importXML(xml).then(function(result) {
+          console.log('Diagram loaded from file');
+          var canvas = modeler.get('canvas');
+          canvas.zoom('fit-viewport');
+        }).catch(function(err) {
+          console.error('Error loading diagram:', err);
+          alert('Error loading diagram: ' + err.message);
+        });
+      };
+      reader.readAsText(file);
+    });
+
+    function downloadDiagram() {
+      modeler.saveXML({ format: true }).then(function(result) {
+        var xml = result.xml;
+        var blob = new Blob([xml], { type: 'application/bpmn20-xml' });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = 'diagram.bpmn';
+        link.click();
+        URL.revokeObjectURL(url);
+      }).catch(function(err) {
+        console.error('Error saving diagram:', err);
+        alert('Error saving diagram: ' + err.message);
+      });
+    }
+
+    function downloadSVG() {
+      modeler.saveSVG().then(function(result) {
+        var svg = result.svg;
+        var blob = new Blob([svg], { type: 'image/svg+xml' });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = 'diagram.svg';
+        link.click();
+        URL.revokeObjectURL(url);
+      }).catch(function(err) {
+        console.error('Error exporting SVG:', err);
+        alert('Error exporting SVG: ' + err.message);
+      });
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      // Ctrl/Cmd + O = Open
+      if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+        e.preventDefault();
+        openDiagram();
+      }
+      // Ctrl/Cmd + S = Download
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        downloadDiagram();
+      }
+    });
+  </script>
+</body>
+</html>
